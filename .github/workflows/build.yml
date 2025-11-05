@@ -27,4 +27,4 @@ jobs:
         with:
           name: pybv3-firmware
           # A lefordított firmware.bin fájl a build-PYBV3 mappában van
-          path: ports/stm32/build-PYBV3/firmware.bin
+          path: ports/stm32/build-PYBV3/
