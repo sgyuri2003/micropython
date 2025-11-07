@@ -1,6 +1,8 @@
 #define MICROPY_HW_BOARD_NAME       "MY_H743_BOARD"
 #define MICROPY_HW_MCU_NAME         "STM32H743ZIT6"
 
+#define MICROPY_PY_MBEDTLS (0)
+
 #define MICROPY_HW_ENABLE_RTC       (1)
 #define MICROPY_HW_ENABLE_RNG       (1)
 #define MICROPY_HW_ENABLE_ADC       (1)
