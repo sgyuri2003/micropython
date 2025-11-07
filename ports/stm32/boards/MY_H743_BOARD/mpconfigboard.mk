@@ -1,20 +1,11 @@
-#
-# Config file for MY_H743_BOARD
-#
-BOARD := MY_H743_BOARD
+MCU_SERIES = h7
+CMSIS_MCU = STM32H743xx
+MICROPY_FLOAT_IMPL = single
+AF_FILE = boards/stm32h743_af.csv
+LD_FILES = boards/MY_H743_BOARD/stm32h743.ld
+TEXT0_ADDR = 0x08000000
 
-# MCU Series definition (used for configuration files)
-MCU_SERIES = H7
-
-# Paths for GPIO pin configuration files
-# Defines the alternate function mapping for H7 series
-AF_CSV = boards/stm32h7xx_af.csv
-# Defines the specific pin names for your board (e.g., LED_RED, UART_TX)
-BOARD_PINS = boards/MY_H743_BOARD/pins.csv
-
-# Compiler settings
-MICROPY_BOARD_C_SRCS += $(SRC_DIR)/boards/MY_H743_BOARD/sdram_data.c
-MICROPY_BOARD_EXTRA_OBJ :=
-
-# Enable SDRAM and other flags
-CFLAGS += -DMICROPY_HW_ENABLE_SDRAM
+MICROPY_PY_LWIP = 1
+MICROPY_PY_NETWORK = 1
+MICROPY_SSL_MBEDTLS = 1
+MBEDTLS_CONFIG_FILE = '"$(BOARD_DIR)/mbedtls_config_board.h"'
