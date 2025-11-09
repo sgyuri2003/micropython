@@ -3,11 +3,11 @@ name: CI Build - Multi-Board
 on:
   workflow_dispatch:
     inputs:
-      board_select: # Átnevezve board_select-re, mert portot is tartalmaz
+      board_select:
         description: 'Válaszd ki a fordítandó board nevet (portot is tartalmazza)'
         required: true
         type: choice
-        default: 'stm32/MY_H743_BOARD' # Új default formátum
+        default: 'stm32/MY_H743_BOARD'
         options:
           # STM32 Boards
           - 'stm32/MY_H743_BOARD'
@@ -29,14 +29,6 @@ jobs:
         with:
           submodules: true
 
-      - name: 🛠️ Build Környezet Beállítása
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git build-essential python3 python3-pip
-          # A gcc-arm-none-eabi megtartva az STM32-höz
-          sudo apt-get install -y gcc-arm-none-eabi 
-          pip3 install pyelftools
-
       - name: 🎯 Port és Board azonosítása
         id: config
         run: |
@@ -48,13 +40,27 @@ jobs:
           echo "port=$PORT_NAME" >> $GITHUB_OUTPUT
           echo "board=$BOARD_NAME" >> $GITHUB_OUTPUT
 
-      - name: ⚙️ ESP32 eszközlánc beállítása (ha ESP32-t választottál)
-        # Csak akkor fut, ha a port=esp32
+      - name: 🛠️ Build Környezet Beállítása (Általános)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git build-essential python3 python3-pip
+          sudo apt-get install -y gcc-arm-none-eabi 
+          pip3 install pyelftools
+
+      - name: 🟢 ESP32 Eszközlánc Kézi Telepítése (ha ESP32-t választottál)
+        # Ez helyettesíti a hibás külső Action-t
         if: steps.config.outputs.port == 'esp32'
-        uses: espressif/action-setup-esp-idf@v1.3 # <-- JAVÍTVA A VERZIÓSZÁM
-        with:
-          esp-idf-version: latest
+        run: |
+          # ESP-IDF Git-ből való klónozása
+          git clone --recursive https://github.com/espressif/esp-idf.git $HOME/esp/esp-idf
           
+          # Telepítő script futtatása
+          $HOME/esp/esp-idf/install.sh
+          
+          # Hozzáadjuk a környezeti változókhoz
+          echo "IDF_PATH=$HOME/esp/esp-idf" >> $GITHUB_ENV
+          echo "$HOME/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin" >> $GITHUB_PATH
+
       - name: Compile Cross-Compiler (mpy-cross)
         run: make -C mpy-cross
 
