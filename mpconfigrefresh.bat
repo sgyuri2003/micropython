@@ -1,0 +1,1 @@
+git add ports/stm32/boards/MY_H743_BOARD/mpconfigboard.h && git commit -m "Final fix: Use correct H7 PLL constant format for 480MHz" && git push
