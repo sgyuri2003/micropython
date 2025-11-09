@@ -17,7 +17,7 @@ on:
           # ESP32 Boards
           - 'esp32/GENERIC'
           - 'esp32/ESP32_WROVER'
-          - 'esp32/ESP32_GENERIC_S3' # Ezt az opciót megtartottam a régi listádból
+          - 'esp32/ESP32_GENERIC_S3'
 
 jobs:
   build_firmware:
@@ -51,7 +51,7 @@ jobs:
       - name: ⚙️ ESP32 eszközlánc beállítása (ha ESP32-t választottál)
         # Csak akkor fut, ha a port=esp32
         if: steps.config.outputs.port == 'esp32'
-        uses: espressif/action-setup-esp-idf@v1
+        uses: espressif/action-setup-esp-idf@v1.3 # <-- JAVÍTVA A VERZIÓSZÁM
         with:
           esp-idf-version: latest
           
