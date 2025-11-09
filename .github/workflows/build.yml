@@ -46,21 +46,30 @@ jobs:
           sudo apt-get install -y gcc-arm-none-eabi 
           pip3 install pyelftools
 
-      - name: 🟢 ESP32 Eszközlánc Beállítása (Stabil Action Hivatkozás)
-        # Ez a legmegbízhatóbb forma: a v2 verzió aktuális commit hash-e
-        if: steps.config.outputs.port == 'esp32'
-        uses: espressif/action-setup-esp-idf@723d53b207f2142e88a0b0d3e51f50a8b9410978 # Ez a hash a v2.1.2 verziónak felel meg
-        with:
-          esp-idf-version: v5.1.2 # Stabil, konkrét IDF verzió használata
-          
       - name: Compile Cross-Compiler (mpy-cross)
         run: make -C mpy-cross
 
-      - name: 🔨 Firmware Fordítása
-        # Most visszatérünk az egyszerű make parancshoz, mert az Action állítja be a környezetet
+      - name: 🔨 Firmware Fordítása és Környezetkezelés
         run: |
-          make -C ports/${{ steps.config.outputs.port }} BOARD=${{ steps.config.outputs.board }}
-
+          PORT=${{ steps.config.outputs.port }}
+          BOARD=${{ steps.config.outputs.board }}
+          
+          if [ "$PORT" == "esp32" ]; then
+            echo "--- ESP32 KÖRNYEZET BEÁLLÍTÁSA ÉS FORDÍTÁSA ---"
+            
+            # ESP32: A Micropython maga tölti le a toolchain-t, ha hiányzik,
+            # majd beállítja a környezetet, mielőtt fordítana.
+            # A make V=1 verbose output-ot ad a diagnosztikához.
+            make -C ports/$PORT BOARD=$BOARD V=1 deploy
+            
+            # A make deploy telepíti a toolchain-t, majd lefut a fordítás.
+            
+          elif [ "$PORT" == "stm32" ]; then
+            echo "--- STM32 FORDÍTÁS INDUL ---"
+            make -C ports/$PORT BOARD=$BOARD
+          fi
+        shell: bash
+        
       - name: 📦 Firmware fájlok feltöltése Artifactként
         uses: actions/upload-artifact@v4
         with:
