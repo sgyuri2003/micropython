@@ -24,44 +24,58 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # ... (A korábbi lépések változatlanok) ...
+      - name: ⚙️ Kódbázis letöltése (Checkout)
+        uses: actions/checkout@v4
+        with:
+          submodules: true
 
-      - name: 🟢 ESP32 Eszközlánc Kézi Telepítése (ha ESP32-t választottál)
-        if: steps.config.outputs.port == 'esp32'
+      - name: 🎯 Port és Board azonosítása
+        id: config
         run: |
-          # ESP-IDF Git-ből való klónozása és telepítése
-          git clone --recursive https://github.com/espressif/esp-idf.git $HOME/esp/esp-idf
-          $HOME/esp/esp-idf/install.sh
+          BOARD_PATH="${{ github.event.inputs.board_select }}"
+          PORT_NAME=$(echo "$BOARD_PATH" | cut -d'/' -f1)
+          BOARD_NAME=$(echo "$BOARD_PATH" | cut -d'/' -f2)
           
-          # Létrehozunk egy jelölő fájlt, amit a következő lépésben forrásként használunk
-          # Mivel a környezet változókat nem lehet közvetlenül átadni a job-ok között,
-          # a build parancsot kell módosítanunk.
-          echo "TELEPÍTÉS SIKERES"
+          echo "port=$PORT_NAME" >> $GITHUB_OUTPUT
+          echo "board=$BOARD_NAME" >> $GITHUB_OUTPUT
+
+      - name: 🛠️ Build Környezet Beállítása (Általános)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git build-essential python3 python3-pip
+          sudo apt-get install -y gcc-arm-none-eabi 
+          pip3 install pyelftools
 
       - name: Compile Cross-Compiler (mpy-cross)
         run: make -C mpy-cross
 
-      - name: 🔨 Firmware Fordítása
-        # Ez a lépés most feltételes, és betölti az ESP-IDF környezetet
+      - name: 🔨 Firmware Fordítása és ESP32 Környezet Beállítása
         run: |
           PORT=${{ steps.config.outputs.port }}
           BOARD=${{ steps.config.outputs.board }}
           
           if [ "$PORT" == "esp32" ]; then
-            echo "ESP32 környezet betöltése és fordítás..."
+            echo "--- ESP32 KÖRNYEZET TELEPÍTÉSE ÉS BETÖLTÉSE ---"
             
-            # A forrásfájl futtatása beállítja a szükséges $PATH változókat
+            # 1. ESP-IDF Klónozása és telepítése
+            git clone --recursive https://github.com/espressif/esp-idf.git $HOME/esp/esp-idf
+            $HOME/esp/esp-idf/install.sh
+            
+            # 2. A make parancs futtatása előtt azonnal betöltjük a környezeti változókat
+            # Így garantáltan a make parancs ugyanabban a shellben fut, ahol a source lefutott.
             source $HOME/esp/esp-idf/export.sh
             
-            # Ezután futtatjuk a make parancsot
+            echo "--- ESP32 FORDÍTÁS INDUL ---"
             make -C ports/$PORT BOARD=$BOARD
-          else
-            echo "STM32/Más port fordítása..."
+            
+          elif [ "$PORT" == "stm32" ]; then
+            echo "--- STM32 FORDÍTÁS INDUL ---"
             make -C ports/$PORT BOARD=$BOARD
           fi
-        shell: bash # Fontos: A 'source' parancs miatt bash shellt kell használni
+        shell: bash # Fontos: A source parancs miatt bash shellt kell használni
 
       - name: 📦 Firmware fájlok feltöltése Artifactként
         uses: actions/upload-artifact@v4
         with:
-          # ... (A korábbi feltöltési lépés változatlan) ...
+          name: ${{ steps.config.outputs.board }}-firmware
+          path: ports/${{ steps.config.outputs.port }}/build-${{ steps.config.outputs.board }}
