@@ -15,6 +15,18 @@
 #define HAL_DCMI_MODULE_ENABLED
 #define HAL_DAC_MODULE_ENABLED
 #define HAL_ADC_MODULE_ENABLED
+// A következő sorokat (vagy hasonlóakat) kell a konfigurációs fájlba illeszteni:
+
+// A HSE_STARTUP_TIMEOUT és LSE_STARTUP_TIMEOUT makrók hozzáadva,
+// hogy feloldjuk a stm32h7xx_hal_rcc.c fordítási hibáját.
+
+#ifndef HSE_STARTUP_TIMEOUT
+#define HSE_STARTUP_TIMEOUT        ( ( uint32_t ) 100 )
+#endif /* HSE_STARTUP_TIMEOUT */
+
+#ifndef LSE_STARTUP_TIMEOUT
+#define LSE_STARTUP_TIMEOUT        ( ( uint32_t ) 5000 )
+#endif /* LSE_STARTUP_TIMEOUT */
 
 #include "boards/stm32h7xx_hal_conf_base.h"
 
