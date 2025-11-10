@@ -22,6 +22,10 @@
 #define MICROPY_HW_CLK_PLLP             (2)
 #define MICROPY_HW_CLK_PLLQ             (5)
 #define MICROPY_HW_CLK_PLLR             (2)
+// Valahol a board órajel beállításai (pl. MICROPY_HW_CLK_PLLM, stb.) mellett
+#define MICROPY_HW_CLK_PLLVCI   RCC_PLLINPUTRANGE_8_16 // VAGY a megfelelő érték!
+#define MICROPY_HW_CLK_PLLVCO   RCC_PLLVCOSEL_WIDE      // VAGY a megfelelő érték!
+#define MICROPY_HW_CLK_PLLFRAC  0                       // VAGY a megfelelő érték!
 
 // USB FS CDC (REPL default)
 #define MICROPY_HW_USB_FS               (1)
